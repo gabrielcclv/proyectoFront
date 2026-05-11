@@ -2,7 +2,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, ReferenceLine,
 } from 'recharts'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 function magToColor(mag) {
   if (mag >= 7.0) return '#ef4444'

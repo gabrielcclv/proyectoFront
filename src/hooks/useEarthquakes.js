@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getRecentEarthquakes, normaliseEarthquakes } from '../services/earthquakesApi.js'
+import { getRecentEarthquakes, normaliseEarthquakes } from '../services/earthquakeApi.js'
 
 /**
  * useEarthquakes — React Query hook for USGS seismic data.

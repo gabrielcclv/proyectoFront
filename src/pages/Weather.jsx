@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 import { useWeather } from '../hooks/useWeather.js'
 import { LOCATION_PRESETS } from '../services/weatherApi.js'
 import { TemperatureChart, PrecipChart, WindChart } from '../components/WeatherChart.jsx'

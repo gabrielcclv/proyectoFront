@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 import { motion } from 'framer-motion'
 
 export default function Login() {

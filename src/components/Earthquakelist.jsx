@@ -1,4 +1,4 @@
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 function magColor(mag) {
   if (mag >= 7.0) return 'var(--red)'

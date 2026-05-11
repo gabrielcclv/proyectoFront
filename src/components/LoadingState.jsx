@@ -1,4 +1,4 @@
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 export function LoadingState({ message }) {
   const { t } = useTranslation()

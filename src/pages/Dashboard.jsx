@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useEarthquakes } from '../hooks/useEarthquakes.js'
 import { useWeather } from '../hooks/useWeather.js'

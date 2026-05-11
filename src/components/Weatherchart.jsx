@@ -3,7 +3,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null

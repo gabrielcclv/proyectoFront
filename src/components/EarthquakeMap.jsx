@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 function magToRadius(mag) {
   return Math.max(4, (mag - 4) * 5 + 4)

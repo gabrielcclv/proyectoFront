@@ -1,6 +1,6 @@
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { useTranslation } from '../i18n.js'
+import { useTranslation } from '../i18n.jsx'
 
 /**
  * ProtectedRoute — guards a route behind authentication.
