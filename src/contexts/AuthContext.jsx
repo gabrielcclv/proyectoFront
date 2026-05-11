@@ -1,27 +1,39 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// AUTHCONTEXT.JSX — Autenticación JWT Global
+// ═════════════════════════════════════════════════════════════════════════════
+// Gestiona el estado global de autenticación contra dummyjson.com.
+// 
+// CICLO DE VIDA DE TOKENS:
+//   1. Access token  → En memoria (protege contra XSS, no persiste)
+//   2. Refresh token → sessionStorage (persiste en reload, se borra al cerrar tab)
+//   3. Auto-refresh  → Cada 25 min (tokens expiran a los 30 min)
+// 
+// SEGURIDAD:
+//   - Access token EN MEMORIA solo: evita ataques XSS via localStorage
+//   - Refresh token EN sessionStorage: permite reauth en reload pero no persistencia
+//   - Auto-logout en fallo de refresh: protege contra sesiones expiradas
+// 
+// @ai-assisted Claude proposed the in-memory access token pattern; verified against
+//              OWASP Auth Cheat Sheet at owasp.org/www-community/attacks/xss.
+
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { login as apiLogin, refreshToken, getMe } from '../services/authApi.js'
 
-/**
- * AuthContext — JWT-based authentication via dummyjson.com.
- *
- * Token lifecycle:
- *  - Access token stored in memory (not localStorage) for XSS protection.
- *  - Refresh token stored in sessionStorage (survives tab reload, not persistence).
- *  - Auto-refresh runs every 25 min (tokens expire at 30 min).
- *
- * @ai-assisted Claude proposed the in-memory access token pattern; verified against
- *              OWASP Auth Cheat Sheet at owasp.org/www-community/attacks/xss.
- */
-
 const AuthContext = createContext(null)
 
+// ┌─────────────────────────────────────────────────────────────────────────────┐
+// │ AuthProvider — Gestiona sesión JWT del usuario                              │
+// └─────────────────────────────────────────────────────────────────────────────┘
 export function AuthProvider({ children }) {
-  const [user, setUser]         = useState(null)
-  const [token, setToken]       = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const refreshTimerRef = useRef(null)
+  // Estado de autenticación
+  const [user, setUser]           = useState(null)       // Objeto usuario: {id, username, email, ...}
+  const [token, setToken]         = useState(null)       // Access token en memoria
+  const [isLoading, setIsLoading] = useState(true)       // Flag de inicialización
+  const refreshTimerRef           = useRef(null)        // Referencia al timer de auto-refresh
 
-  // ── Helpers ──────────────────────────────────────────────
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ scheduleRefresh — Programa auto-refresh del access token cada 25 min     │
+  // └─────────────────────────────────────────────────────────────────────────┘
   const scheduleRefresh = useCallback((refreshTkn) => {
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
     refreshTimerRef.current = setTimeout(async () => {
@@ -36,14 +48,21 @@ export function AuthProvider({ children }) {
     }, 25 * 60 * 1000) // 25 min
   }, [])
 
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ logout — Limpia sesión actual y detiene auto-refresh                    │
+  // └─────────────────────────────────────────────────────────────────────────┘
   const logout = useCallback(() => {
     setUser(null)
     setToken(null)
-    sessionStorage.removeItem('refreshToken')
-    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
+    sessionStorage.removeItem('refreshToken')  // Elimina refresh token almacenado
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)  // Cancela timer
   }, [])
 
-  // ── Restore session on mount ─────────────────────────────
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ useEffect: Restaurar sesión en mount                                    │
+  // └─────────────────────────────────────────────────────────────────────────┘
+  // Al cargar: intenta reusar el refresh token existente en sessionStorage.
+  // Si lo consigue, recarga el usuario. Si falla, limpia sesión.
   useEffect(() => {
     const stored = sessionStorage.getItem('refreshToken')
     if (!stored) { setIsLoading(false); return }
@@ -62,7 +81,9 @@ export function AuthProvider({ children }) {
       .finally(() => setIsLoading(false))
   }, [scheduleRefresh])
 
-  // ── Login ────────────────────────────────────────────────
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ login — Autentica usuario con credenciales                              │
+  // └─────────────────────────────────────────────────────────────────────────┘
   const login = useCallback(async (username, password) => {
     const data = await apiLogin(username, password)
     setToken(data.accessToken)
@@ -79,7 +100,13 @@ export function AuthProvider({ children }) {
     return data
   }, [scheduleRefresh])
 
-  // ── Fetch with auto-refresh on 401 ──────────────────────
+  // ┌─────────────────────────────────────────────────────────────────────────┐
+  // │ authFetch — Fetch con auto-refresh si access token expira (401)         │
+  // └─────────────────────────────────────────────────────────────────────────┘
+  // Wrapper de fetch() que:
+  //   1. Incluye Authorization header con access token
+  //   2. Si recibe 401 (no autorizado): intenta refresh automático
+  //   3. Si refresh falla: logout y lanza error
   const authFetch = useCallback(async (url, options = {}) => {
     const res = await fetch(url, {
       ...options,

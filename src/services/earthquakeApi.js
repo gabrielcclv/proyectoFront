@@ -1,47 +1,51 @@
-/**
- * earthquakesApi.js — USGS Earthquake Hazards Program service.
- *
- * Base URL: https://earthquake.usgs.gov/fdsnws/event/1/
- * Returns GeoJSON FeatureCollection.
- *
- * Each feature has:
- *   geometry.coordinates: [lon, lat, depth_km]
- *   properties.mag:       number
- *   properties.place:     string
- *   properties.time:      Unix ms
- *   properties.tsunami:   0 | 1
- *   properties.url:       USGS detail page
- *
- * @ai-assisted Claude proposed the URLSearchParams pattern; reviewed against
- *              the USGS FDSN spec at earthquake.usgs.gov/fdsnws/event/1/.
- */
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// EARTHQUAKEAPI.JS — Integración con API de Terremotos de USGS
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+// Obtiene datos sísmicos en tiempo real del USGS Earthquake Hazards Program.
+// 
+// API: https://earthquake.usgs.gov/fdsnws/event/1/
+// Documentación: https://earthquake.usgs.gov/fdsnws/event/1/
+// 
+// Cada terremoto retorna:
+//   - Coordenadas: [longitud, latitud, profundidad_km]
+//   - Magnitud, ubicación, timestamp, tsunami flag
+//   - URL con detalles en USGS
+// 
+// @ai-assisted Claude proposed the URLSearchParams pattern; verified against
+//              the USGS FDSN spec at earthquake.usgs.gov/fdsnws/event/1/.
 
 const BASE = 'https://earthquake.usgs.gov/fdsnws/event/1/'
 
 /**
- * Builds the USGS query URL with dynamic time range and magnitude filter.
+ * Construye URL para consultar terremotos recientes con filtros.
+ * 
  * @param {object} opts
- * @param {number} opts.minMagnitude - Minimum magnitude filter (default 4.5)
- * @param {number} opts.days         - Days back from today (default 7)
+ * @param {number} opts.minMagnitude - Filtro magnitud mínima (default 4.5)
+ * @param {number} opts.days         - Días hacia atrás desde hoy (default 7)
+ * @returns {string} URL completa con parámetros de query
  */
 export function buildUSGSUrl({ minMagnitude = 4.5, days = 7 } = {}) {
-  const endtime   = new Date().toISOString().slice(0, 10)
+  // Rango de fechas: hoy a 'days' días atrás
+  const endtime   = new Date().toISOString().slice(0, 10)      // YYYY-MM-DD actual
   const starttime = new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10)
 
+  // Construye URL con parámetros
   const url = new URL('query', BASE)
-  url.searchParams.set('format',       'geojson')
-  url.searchParams.set('starttime',    starttime)
+  url.searchParams.set('format',       'geojson')              // Formato GeoJSON
+  url.searchParams.set('starttime',    starttime)              // Rango temporal
   url.searchParams.set('endtime',      endtime)
-  url.searchParams.set('minmagnitude', String(minMagnitude))
-  url.searchParams.set('orderby',      'time')
-  url.searchParams.set('limit',        '200')
+  url.searchParams.set('minmagnitude', String(minMagnitude))  // Solo magnitud > X
+  url.searchParams.set('orderby',      'time')                 // Ordena por timestamp
+  url.searchParams.set('limit',        '200')                  // Max 200 eventos
 
   return url.toString()
 }
 
 /**
- * Fetches recent earthquakes from the USGS API.
- * @returns {Promise<object>} GeoJSON FeatureCollection
+ * Obtiene terremotos recientes del API de USGS.
+ * 
+ * @param {object} opts - Opciones de filtrado (minMagnitude, days)
+ * @returns {Promise<object>} GeoJSON FeatureCollection con terremotos
  */
 export async function getRecentEarthquakes({ minMagnitude = 4.5, days = 7 } = {}) {
   const url = buildUSGSUrl({ minMagnitude, days })
@@ -51,22 +55,24 @@ export async function getRecentEarthquakes({ minMagnitude = 4.5, days = 7 } = {}
 }
 
 /**
- * Extracts a normalised array of earthquake objects from GeoJSON.
- * @param {object} geojson - GeoJSON FeatureCollection from USGS
- * @returns {Array} Normalised earthquake objects
+ * Normaliza datos GeoJSON de USGS a un formato estándar para la app.
+ * Extrae las propiedades útiles de cada terremoto.
+ * 
+ * @param {object} geojson - GeoJSON FeatureCollection retornado por USGS
+ * @returns {Array} Array de objetos earthquake normalizados
  */
 export function normaliseEarthquakes(geojson) {
   if (!geojson?.features) return []
   return geojson.features.map((f) => ({
-    id:      f.id,
-    lat:     f.geometry.coordinates[1],
-    lon:     f.geometry.coordinates[0],
-    depth:   f.geometry.coordinates[2],
-    mag:     f.properties.mag,
-    place:   f.properties.place,
-    time:    new Date(f.properties.time),
-    tsunami: f.properties.tsunami === 1,
-    url:     f.properties.url,
-    type:    f.properties.type,
+    id:      f.id,                              // ID único del evento
+    lat:     f.geometry.coordinates[1],         // Latitud del epicentro
+    lon:     f.geometry.coordinates[0],         // Longitud del epicentro
+    depth:   f.geometry.coordinates[2],         // Profundidad en km
+    mag:     f.properties.mag,                  // Magnitud en escala de Richter
+    place:   f.properties.place,                // Descripción de ubicación
+    time:    new Date(f.properties.time),       // Timestamp del evento
+    tsunami: f.properties.tsunami === 1,        // Flag: ¿generó tsunami?
+    url:     f.properties.url,                  // Link a página de detalles en USGS
+    type:    f.properties.type,                 // Tipo de evento sísmico
   }))
 }
