@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from '../i18n.jsx'
 import { useWeather } from '../hooks/useWeather.js'
 import { LOCATION_PRESETS } from '../services/weatherApi.js'
-import { TemperatureChart, PrecipChart, WindChart } from '../components/WeatherChart.jsx'
+import { TemperatureChart, PrecipChart, WindChart } from '../components/Weatherchart.jsx'
 import { LoadingState, ErrorState } from '../components/LoadingState.jsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
