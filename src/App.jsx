@@ -8,7 +8,7 @@
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useI18n } from './i18n.jsx'
 
-import ProtectedRoute from './components/Protectedroute.jsx'
+import Protectedroute from './components/Protectedroute.jsx'
 import NavBar        from './components/NavBar.jsx'
 
 import Home        from './pages/Home.jsx'
