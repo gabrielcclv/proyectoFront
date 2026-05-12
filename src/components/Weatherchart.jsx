@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   )
 }
 
-export function TemperatureChart({ forecast }) {
+export function Temperaturechart({ forecast }) {
   const { t } = useTranslation()
   const data = forecast.map(d => ({
     date:    d.date.slice(5),
@@ -62,7 +62,7 @@ export function TemperatureChart({ forecast }) {
   )
 }
 
-export function PrecipChart({ forecast }) {
+export function Precipchart({ forecast }) {
   const { t } = useTranslation()
   const data = forecast.map(d => ({ date: d.date.slice(5), precip: d.precip }))
 
@@ -82,7 +82,7 @@ export function PrecipChart({ forecast }) {
   )
 }
 
-export function WindChart({ forecast }) {
+export function Windchart({ forecast }) {
   const { t } = useTranslation()
   const data = forecast.map(d => ({ date: d.date.slice(5), wind: d.windMax }))
 
