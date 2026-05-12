@@ -4,13 +4,19 @@ import { useTranslation } from '../i18n.jsx'
 
 export default function NavBar() {
   const { user, logout } = useAuth()
-  const { t, locale }   = useTranslation()
+  const { t, locale, setLocale }   = useTranslation()
+  
   const navigate         = useNavigate()
   const { lang = 'en' } = useParams()
 
+
   function switchLang() {
     const next = locale === 'en' ? 'es' : 'en'
+    
+    setLocale(next)
+    
     // Swap the lang prefix in the current path
+
     const path = window.location.pathname
     const newPath = path.replace(`/${lang}`, `/${next}`)
     navigate(newPath, { replace: true })

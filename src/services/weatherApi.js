@@ -35,8 +35,6 @@ const BASE = 'https://api.open-meteo.com/v1/forecast'
 // @ai-assisted Claude proposed the URLSearchParams pattern; reviewed against
 //              Open-Meteo docs at open-meteo.com/en/docs.
 
-const BASE = 'https://api.open-meteo.com/v1/forecast'
-
 /**
  * Ubicaciones predefinidas para selección rápida.
  * Lat/Lon de ciudades importantes en diferentes continentes.
